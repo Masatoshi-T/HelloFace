@@ -1,16 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_random"
-            android:title="Random" />
+            android:title="Random"
+            android:icon="@drawable/icon_white"
+            app:itemBackground="@color/colorAccent"
+            />
         <item
             android:id="@+id/nav_fami"
-            android:title="某コンビニ"/>
+            android:title="某コンビニ"
+            android:icon="@drawable/f"/>
         <item
             android:id="@+id/nav_mac"
-            android:title="ポテトが揚がった音" />
+            android:title="ポテトが揚がったよ"
+            android:icon="@drawable/potato1"/>
     </group>
 
 </menu>

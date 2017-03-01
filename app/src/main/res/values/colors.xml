@@ -3,4 +3,5 @@
     <color name="colorPrimary">#e47504</color>
     <color name="colorPrimaryDark">#e47504</color>
     <color name="colorAccent">#009688</color>
+    <color name="nav.item.background">#FFFFFF</color>
 </resources>

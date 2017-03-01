@@ -34,10 +34,17 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+
+import static jp.techacademy.masatoshi.tashiro.helloface.Val.mirror;
+import static jp.techacademy.masatoshi.tashiro.helloface.Val.turn;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -57,8 +64,8 @@ public class MainActivity extends AppCompatActivity
     static final int RANDOM_MODE = 0;
     static final int FAMI_MODE = 1;
     static final int MAC_MODE = 2;
-    private int w;
-    private int h;
+    private ImageButton imageButton;
+    private boolean Onecheck = true;
 
 
     int[] mp3Sounds = new int[] {R.raw.konbini1, R.raw.conbini2,  R.raw.famima, R.raw.mac_poteto};
@@ -82,6 +89,12 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        mAdView = (AdView) findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
+
+        imageButton = (ImageButton) findViewById(R.id.turn_camera);
+
         checkPermission();
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
@@ -102,7 +115,13 @@ public class MainActivity extends AppCompatActivity
 
                 @Override
                 public void surfaceCreated(SurfaceHolder holder) {
-                    mCamera = Camera.open();
+                    if (mirror) {
+                        turn = Camera.CameraInfo.CAMERA_FACING_FRONT;
+                    } else {
+                        turn = Camera.CameraInfo.CAMERA_FACING_BACK;
+                    }
+                    Log.d("Log_mirror",String.valueOf(mirror) + " turn:" + String.valueOf(turn));
+                    mCamera = Camera.open(turn);
                     if (mCamera != null) {
                         try {
                             mCamera.setDisplayOrientation(90);
@@ -116,8 +135,6 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
                     if (mCamera != null) {
-                        w = width;
-                        h = height;
                         Log.d("Log1_W:", String.valueOf(width) + " H:" + String.valueOf(height));
                         Parameters params = mCamera.getParameters();
                         mCamera.startPreview();
@@ -149,8 +166,26 @@ public class MainActivity extends AppCompatActivity
             });
 
             mFaceMarkerView = new FaceMarkerView(this);
-            addContentView(mFaceMarkerView, new WindowManager.LayoutParams(WindowManager.LayoutParams.MATCH_PARENT,
+            RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.content_main);
+            relativeLayout.addView(mFaceMarkerView, new WindowManager.LayoutParams(WindowManager.LayoutParams.MATCH_PARENT,
                     WindowManager.LayoutParams.MATCH_PARENT));
+
+            imageButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (Onecheck) {
+                        Onecheck = false;
+                        mirror = !mirror;
+                        mCamera.stopFaceDetection();
+                        mCamera.stopPreview();
+                        mCamera.release();
+                        mCamera = null;
+                        Intent intent = new Intent(MainActivity.this, MainActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                    }
+                }
+            });
         }
     }
 
@@ -201,7 +236,7 @@ public class MainActivity extends AppCompatActivity
             mToolbar.setTitle("某コンビニ");
             MODE = FAMI_MODE;
         } else if (id == R.id.nav_mac) {
-            mToolbar.setTitle("ポテトが揚がった音");
+            mToolbar.setTitle("ポテトが揚がったよ");
             MODE = MAC_MODE;
         }
 
@@ -230,7 +265,6 @@ public class MainActivity extends AppCompatActivity
                 for (int i = 0; i < faces.length; i++) {
                     int saveState = canvas.save();
                     Matrix matrix = new Matrix();
-                    boolean mirror = false;
                     matrix.setScale(mirror ? -1 : 1, 1);
                     matrix.postRotate(90);
                     matrix.postScale(getWidth() / 2000f, getHeight() / 2000f);
@@ -243,20 +277,21 @@ public class MainActivity extends AppCompatActivity
             }
         }
     }
-    private void audioSetup(){
+    private void audioSetup() {
         mediaPlayer = new MediaPlayer();
         Random random = new Random();
         int n;
-        switch(MODE) {
+        switch (MODE) {
             case RANDOM_MODE:
                 n = random.nextInt(4);
-                mediaPlayer = MediaPlayer.create(this,mp3Sounds[n]);
+                mediaPlayer = MediaPlayer.create(this, mp3Sounds[n]);
+                Log.d("Log_p", String.valueOf(n));
                 break;
             case FAMI_MODE:
-                mediaPlayer=MediaPlayer.create(this,mp3Sounds[2]);
+                mediaPlayer = MediaPlayer.create(this, mp3Sounds[2]);
                 break;
             case MAC_MODE:
-                mediaPlayer=MediaPlayer.create(this,mp3Sounds[3]);
+                mediaPlayer = MediaPlayer.create(this, mp3Sounds[3]);
                 break;
         }
         if (GIRL_MODE) {
